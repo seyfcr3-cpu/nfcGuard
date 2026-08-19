@@ -3,6 +3,7 @@ package com.andebugulin.nfcguard.ui
 import com.andebugulin.nfcguard.R
 import com.andebugulin.nfcguard.data.AppLogger
 import com.andebugulin.nfcguard.data.AppStateRepository
+import com.andebugulin.nfcguard.ProtectionLogic
 import com.andebugulin.nfcguard.ProtectionState
 import com.andebugulin.nfcguard.Schedule
 import com.andebugulin.nfcguard.service.ForegroundDetectorService
