@@ -115,7 +115,7 @@ class GuardianWidget : AppWidgetProvider() {
             val endTime = appState.timedModeDeactivations[mode.id] ?: 0
             "● ACTIVE · UNTIL ${formatTime(endTime)}"
         } else {
-            "● ACTIVE · NFC TO UNLOCK"
+            "● ACTIVE · BLOCKTAP TO UNLOCK"
         }
         views.setTextViewText(R.id.tv_status, statusText)
         views.setInt(R.id.tv_status, "setTextColor", COLOR_WHITE)
@@ -271,7 +271,7 @@ class GuardianWidget : AppWidgetProvider() {
         // Durations in minutes; 0 = unlimited (until NFC / schedule)
         private val DURATIONS = listOf(0L, 15L, 30L, 60L, 120L)
         private val DURATION_LABELS = listOf(
-            "UNTIL NFC / SCHEDULE",
+            "UNTIL BLOCKTAP / SCHEDULE",
             "FOR 15 MINUTES",
             "FOR 30 MINUTES",
             "FOR 1 HOUR",

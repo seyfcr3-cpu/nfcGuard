@@ -138,18 +138,27 @@ class MainActivity : ComponentActivity() {
                 android.util.Log.d("NFC_SCAN", "Scanned tag: $tagId")
                 AppLogger.log("NFC", "Tag scanned: $tagId")
 
+                launchedFromNfc = fromCreate
+
                 try {
                     val appState = AppStateRepository.getInstance(this).current
 
-                    // If protection is LOCKED and this is the registered key, toggle
-                    if (appState.protectionState == ProtectionState.LOCKED &&
-                        appState.registeredNfcTagId.isNotEmpty() &&
-                        tagId == appState.registeredNfcTagId
-                    ) {
-                        if (fromCreate) {
-                            // Launched from background — toggle silently, show toast, finish
-                            val result = com.andebugulin.nfcguard.ProtectionLogic.toggleProtection(appState, tagId)
-                            if (result is com.andebugulin.nfcguard.ProtectionLogic.ToggleProtectionResult.Toggled) {
+                    if (fromCreate) {
+                        val isRegistered = appState.registeredNfcTagId.isNotEmpty() && tagId == appState.registeredNfcTagId
+                        val isLegacyValid = run {
+                            val activeModes = appState.modes.filter { appState.activeModes.contains(it.id) }
+                            val hasNfcLockedMode = activeModes.any { it.nfcTagIds.isNotEmpty() }
+                            if (hasNfcLockedMode && !nfcRegistrationMode.value) {
+                                activeModes.any { it.nfcTagIds.contains(tagId) || it.nfcTagIds.isEmpty() || it.nfcTagIds.contains("ANY") }
+                            } else false
+                        }
+
+                        if ((appState.protectionState == ProtectionState.LOCKED && isRegistered) ||
+                            (appState.protectionState == ProtectionState.UNLOCKED && isRegistered && appState.modes.isNotEmpty()) ||
+                            isLegacyValid
+                        ) {
+                            val result = ProtectionLogic.toggleProtection(appState, tagId)
+                            if (result is ProtectionLogic.ToggleProtectionResult.Toggled) {
                                 lifecycleScope.launch { AppStateRepository.getInstance(this@MainActivity).update { result.newState } }
                                 val msg = if (result.nowLocked) "BLOCKTAP ON" else "BLOCKTAP OFF"
                                 android.widget.Toast.makeText(applicationContext, msg, android.widget.Toast.LENGTH_LONG).show()
@@ -157,78 +166,33 @@ class MainActivity : ComponentActivity() {
                                 return@let
                             }
                         }
-                        scannedNfcTagId.value = tagId
-                        return@let
-                    }
 
-                    // If UNLOCKED and tag matches registered key AND modes exist, toggle to LOCKED
-                    if (appState.protectionState == com.andebugulin.nfcguard.ProtectionState.UNLOCKED &&
-                        appState.registeredNfcTagId.isNotEmpty() &&
-                        tagId == appState.registeredNfcTagId &&
-                        appState.modes.isNotEmpty()
-                    ) {
-                        if (fromCreate) {
-                            val result = com.andebugulin.nfcguard.ProtectionLogic.toggleProtection(appState, tagId)
-                            if (result is com.andebugulin.nfcguard.ProtectionLogic.ToggleProtectionResult.Toggled) {
-                                lifecycleScope.launch { AppStateRepository.getInstance(this@MainActivity).update { result.newState } }
-                                val msg = if (result.nowLocked) "BLOCKTAP ON" else "BLOCKTAP OFF"
-                                android.widget.Toast.makeText(applicationContext, msg, android.widget.Toast.LENGTH_LONG).show()
-                                finish()
-                                return@let
-                            }
+                        val isWrongTag = appState.protectionState == ProtectionState.LOCKED &&
+                                appState.registeredNfcTagId.isNotEmpty() && tagId != appState.registeredNfcTagId
+                        val isLegacyWrong = run {
+                            val activeModes = appState.modes.filter { appState.activeModes.contains(it.id) }
+                            val hasNfcLockedMode = activeModes.any { it.nfcTagIds.isNotEmpty() }
+                            if (hasNfcLockedMode && !nfcRegistrationMode.value) {
+                                val validTag = activeModes.any { it.nfcTagIds.contains(tagId) || it.nfcTagIds.isEmpty() || it.nfcTagIds.contains("ANY") }
+                                !validTag && appState.activeModes.isNotEmpty()
+                            } else false
                         }
-                        scannedNfcTagId.value = tagId
-                        return@let
-                    }
 
-                    // If LOCKED but wrong tag, show wrong tag feedback
-                    if (appState.protectionState == ProtectionState.LOCKED &&
-                        appState.registeredNfcTagId.isNotEmpty() &&
-                        tagId != appState.registeredNfcTagId
-                    ) {
-                        AppLogger.log("NFC", "WRONG TAG while LOCKED (tag=$tagId)")
-                        if (fromCreate) {
-                            android.widget.Toast.makeText(applicationContext, "WRONG NFC KEY", android.widget.Toast.LENGTH_LONG).show()
+                        if (isWrongTag || isLegacyWrong) {
+                            android.widget.Toast.makeText(applicationContext, "WRONG BLOCKTAP", android.widget.Toast.LENGTH_LONG).show()
                             finish()
                             return@let
                         }
-                        wrongTagScanned.value = true
-                        this@MainActivity.lifecycleScope.launch {
-                            kotlinx.coroutines.delay(2000)
-                            wrongTagScanned.value = false
-                        }
+
+                        finish()
                         return@let
                     }
 
-                    // Legacy mode: check if this is valid for active modes
-                    val activeModes = appState.modes.filter { appState.activeModes.contains(it.id) }
-                    val hasNfcLockedMode = activeModes.any { it.nfcTagIds.isNotEmpty() }
-
-                    if (hasNfcLockedMode && !nfcRegistrationMode.value) {
-                        val validTag = activeModes.any { it.nfcTagIds.contains(tagId) || it.nfcTagIds.isEmpty() || it.nfcTagIds.contains("ANY") }
-                        if (!validTag && appState.activeModes.isNotEmpty()) {
-                            AppLogger.log("NFC", "WRONG TAG for active modes (tag=$tagId, activeModes=${appState.activeModes})")
-                            if (fromCreate) {
-                                android.widget.Toast.makeText(applicationContext, "WRONG NFC KEY", android.widget.Toast.LENGTH_LONG).show()
-                                finish()
-                                return@let
-                            }
-                            wrongTagScanned.value = true
-                            this@MainActivity.lifecycleScope.launch {
-                                kotlinx.coroutines.delay(2000)
-                                wrongTagScanned.value = false
-                            }
-                        }
-                    }
+                    scannedNfcTagId.value = tagId
                 } catch (e: Exception) {
                     android.util.Log.e("NFC_SCAN", "Error validating tag: ${e.message}")
+                    if (fromCreate) finish()
                 }
-
-                if (fromCreate && !isFinishing) {
-                    finish()
-                    return@let
-                }
-                scannedNfcTagId.value = tagId
             }
         }
     }
@@ -388,7 +352,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
         OnboardingPage(
             title = "BLOCKTAP",
             subtitle = "DIGITAL WELLBEING",
-            description = "Break free from mindless scrolling. BlockTap blocks distracting apps until you physically unlock them with NFC tags.",
+            description = "Break free from mindless scrolling. BlockTap blocks distracting apps until you physically unlock them with your BlockTap.",
             icon = "shield"
         ),
         OnboardingPage(
@@ -400,9 +364,9 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             icon = "modes"
         ),
         OnboardingPage(
-            title = "NFC LOCKS",
+            title = "BLOCKTAP LOCKS",
             subtitle = "PHYSICAL FRICTION",
-            description = "Add NFC tags as physical keys to unlock your modes.\n\n" +
+            description =                     "Add a BlockTap as a physical key to unlock your modes.\n\n" +
                     "Keep a tag somewhere inconvenient — a drawer, the kitchen, another room — so opening a blocked app takes real, deliberate effort.\n\n" +
                     "This is an optional extra layer; modes work fine without it.",
             icon = "nfc"
@@ -656,14 +620,14 @@ fun WrongTagFeedback() {
                     modifier = Modifier.size(64.dp)
                 )
                 Text(
-                    "WRONG NFC KEY",
+                    "WRONG BLOCKTAP",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = GuardianTheme.TextPrimary,
                     letterSpacing = 2.sp
                 )
                 Text(
-                    "This BlockTap protection requires\nyour registered NFC key",
+                    "This BlockTap protection requires\nyour registered BlockTap",
                     fontSize = 14.sp,
                     color = Color(0xFFFFCCCC),
                     textAlign = TextAlign.Center,
@@ -759,7 +723,7 @@ fun BlockTapScanFeedback(
             Spacer(Modifier.height(32.dp))
 
             Text(
-                if (isError) "WRONG NFC KEY" else message.uppercase(),
+                if (isError) "WRONG BLOCKTAP" else message.uppercase(),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Black,
                 color = if (isError) GuardianTheme.Error else Color.White,
@@ -770,7 +734,7 @@ fun BlockTapScanFeedback(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                if (isError) "This BlockTap protection requires\nyour registered NFC key"
+                if (isError) "This BlockTap protection requires\nyour registered BlockTap"
                 else if (isOn) "Protection activated"
                 else "Protection deactivated",
                 fontSize = 13.sp,

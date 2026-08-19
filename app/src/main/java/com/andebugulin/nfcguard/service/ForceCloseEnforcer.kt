@@ -100,7 +100,7 @@ class ForceCloseEnforcer(private val context: Context) : Enforcer {
             try {
                 android.widget.Toast.makeText(
                     context,
-                    "BLOCKED — go to BlockTap & tap NFC tag to unlock",
+                    "BLOCKED — go to BlockTap & tap your BlockTap to unlock",
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
             } catch (e: Exception) {

@@ -471,7 +471,7 @@ fun ModeCard(
                                     val prefix = if (isManual) "MANUAL" else "ACTIVE"
                                     "$prefix \u00B7 ${remaining.coerceAtLeast(0)}M LEFT \u00B7 UNTIL $endStr"
                                 }
-                                isManual -> "MANUAL \u00B7 NFC TO UNLOCK"
+                                isManual -> "MANUAL \u00B7 BLOCKTAP TO UNLOCK"
                                 else -> {
                                     if (scheduleEndTime != null) "BY SCHEDULE \u00B7 UNTIL $scheduleEndTime"
                                     else "ACTIVATED BY SCHEDULE"
@@ -731,7 +731,7 @@ fun ActivationOptionsDialog(
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Text(
-                            if (hasLinkedSchedules) "UNTIL SCHEDULE ENDS / NFC TAG" else "UNTIL NFC TAG",
+                            if (hasLinkedSchedules) "UNTIL SCHEDULE ENDS / BLOCKTAP" else "UNTIL BLOCKTAP",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (selectedOption == 0) Color.Black else Color.White,
@@ -740,9 +740,9 @@ fun ActivationOptionsDialog(
                         Spacer(Modifier.height(4.dp))
                         Text(
                             if (hasLinkedSchedules)
-                                "Mode will deactivate when a linked schedule ends, or when you tap an NFC tag"
+                                "Mode will deactivate when a linked schedule ends, or when you tap your BlockTap"
                             else
-                                "Mode stays active until you tap an NFC tag to unlock",
+                                "Mode stays active until you tap your BlockTap to unlock",
                             fontSize = 10.sp,
                             color = if (selectedOption == 0) GuardianTheme.OnLightSurfaceSecondaryText else GuardianTheme.TextTertiary,
                             letterSpacing = 0.5.sp

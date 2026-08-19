@@ -76,7 +76,7 @@ fun NfcTagsScreen(
                     Icon(Icons.Default.ArrowBack, null, tint = GuardianTheme.IconPrimary)
                 }
                 Text(
-                    "NFC TAGS",
+                    "BLOCKTAP",
                     fontWeight = FontWeight.Black,
                     letterSpacing = 2.sp,
                     fontSize = 24.sp,
@@ -105,7 +105,7 @@ fun NfcTagsScreen(
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
-                        "Register NFC tags to lock specific modes",
+                        "Register a BlockTap to lock specific modes",
                         fontSize = 11.sp,
                         color = GuardianTheme.TextSecondary,
                         letterSpacing = 0.5.sp
@@ -131,7 +131,7 @@ fun NfcTagsScreen(
                         )
                         Spacer(Modifier.height(16.dp))
                         Text(
-                            "NO NFC TAGS",
+                            "NO BLOCKTAP",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = GuardianTheme.TextDisabled,
@@ -271,7 +271,7 @@ fun NfcTagsScreen(
                         modifier = Modifier.size(24.dp)
                     )
                     Text(
-                        "DELETE NFC TAG?",
+                        "DELETE BLOCKTAP?",
                         fontWeight = FontWeight.Black,
                         letterSpacing = 2.sp,
                         color = GuardianTheme.TextPrimary
@@ -340,7 +340,7 @@ fun NfcTagsScreen(
                                 letterSpacing = 0.5.sp
                             )
                             Text(
-                                "\u2022 Remove the NFC tag",
+                                "\u2022 Remove the BlockTap",
                                 fontSize = 11.sp,
                                 color = GuardianTheme.ErrorText,
                                 letterSpacing = 0.5.sp
@@ -396,7 +396,7 @@ fun NfcTagsScreen(
     // Safe Regime challenge for deleting tags linked to active modes
     if (showDeleteChallenge && pendingDeleteTag != null) {
         SafeRegimeChallengeDialog(
-            actionDescription = "Deleting NFC tag ${pendingDeleteTag!!.name} while modes are active could make it impossible to deactivate them normally.",
+            actionDescription = "Deleting BlockTap ${pendingDeleteTag!!.name} while modes are active could make it impossible to deactivate them normally.",
             totalDurationSeconds = challengeDuration,
             onComplete = {
                 pendingDeleteTag?.let { viewModel.deleteNfcTag(it.id) }
@@ -585,7 +585,7 @@ fun NfcTagRegistrationDialog(
         ),
         title = {
             Text(
-                "REGISTER NFC TAG",
+                "REGISTER BLOCKTAP",
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 2.sp
             )
@@ -610,7 +610,7 @@ fun NfcTagRegistrationDialog(
                             )
                             Spacer(Modifier.height(16.dp))
                             Text(
-                                "TAP NFC TAG",
+                                "TAP BLOCKTAP",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = GuardianTheme.TextSecondary,
@@ -618,7 +618,7 @@ fun NfcTagRegistrationDialog(
                             )
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "Hold your NFC tag near the device",
+                                "Hold your BlockTap near the device",
                                 fontSize = 11.sp,
                                 color = GuardianTheme.TextTertiary,
                                 letterSpacing = 0.5.sp
@@ -651,7 +651,7 @@ fun NfcTagRegistrationDialog(
                                     letterSpacing = 1.sp
                                 )
                                 Text(
-                                    "This NFC tag is already in your list. Try a different tag.",
+                                    "This BlockTap is already in your list. Try a different tag.",
                                     fontSize = 9.sp,
                                     color = GuardianTheme.ErrorText,
                                     letterSpacing = 0.5.sp
@@ -784,7 +784,7 @@ fun NfcTagEditDialog(
         ),
         title = {
             Text(
-                "RENAME NFC TAG",
+                "RENAME BLOCKTAP",
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 2.sp
             )

@@ -227,7 +227,7 @@ fun ModeEditorScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            "NFC TAG LOCK",
+                            "BLOCKTAP LOCK",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = GuardianTheme.TextPrimary,
@@ -236,7 +236,7 @@ fun ModeEditorScreen(
                     }
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Optional: Require specific NFC tag(s) to unlock",
+                        "Optional: Require specific BlockTap to unlock",
                         fontSize = 10.sp,
                         color = GuardianTheme.TextSecondary,
                         letterSpacing = 0.5.sp
@@ -254,7 +254,7 @@ fun ModeEditorScreen(
                         // "Any other tag" option (ID is now "ANY")
                         val isAnySelected = selectedNfcTagIds.contains("ANY")
                         TagLimitItem(
-                            name = "ANY OTHER NFC TAG",
+                            name = "ANY OTHER BLOCKTAP",
                             isSelected = isAnySelected,
                             limitMinutes = tagUnlockLimits["ANY"],
                             onToggle = {
@@ -436,7 +436,7 @@ fun ModeEditorScreen(
                         shape = RoundedCornerShape(0.dp)
                     ) {
                         Text(
-                            "DANGER: All selected NFC tags have a time limit. Once this mode activates, you will NOT be able to turn it off permanently until the schedule ends.",
+                            "DANGER: All selected BlockTap tags have a time limit. Once this mode activates, you will NOT be able to turn it off permanently until the schedule ends.",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = GuardianTheme.Warning,

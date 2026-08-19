@@ -86,7 +86,7 @@ fun FeatureShowcaseDialog(screen: Screen, onContinue: () -> Unit) {
             Icons.Default.Block,
             "A mode is a set of apps to block. Create one, choose BLOCK (block the apps you pick) " +
                 "or ALLOW ONLY (block everything except the apps you pick), then activate it.\n\n" +
-                "You can turn a mode on manually, on a schedule, or lock it behind an NFC tag."
+                "You can turn a mode on manually, on a schedule, or lock it behind a BlockTap."
         )
         Screen.SCHEDULES -> ShowcaseContent(
             "SCHEDULES",
@@ -96,9 +96,9 @@ fun FeatureShowcaseDialog(screen: Screen, onContinue: () -> Unit) {
                 "or a sleep schedule overnight."
         )
         Screen.NFC_TAGS -> ShowcaseContent(
-            "NFC TAGS",
+            "BLOCKTAP",
             Icons.Default.Nfc,
-            "Register an NFC tag as a physical key, then link it to a mode. You'll need to tap that " +
+            "Register a BlockTap as a physical key, then link it to a mode. You'll need to tap that " +
                 "tag to unlock the mode — real friction between you and a blocked app. Keep the tag " +
                 "somewhere inconvenient for the most effect."
         )

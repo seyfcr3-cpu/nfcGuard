@@ -277,7 +277,7 @@ fun HomeScreen(
                 )
                 Column(Modifier.weight(1f)) {
                     Text(
-                        "NFC KEY",
+                        "BLOCKTAP",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = GuardianTheme.TextPrimary,
@@ -404,7 +404,7 @@ fun HomeScreen(
             )
 
             NavigationCard(
-                title = "NFC TAGS",
+                title = "BLOCKTAP",
                 subtitle = if (hasNfcKey) "1 REGISTERED" else "${appState.nfcTags.size} REGISTERED",
                 icon = Icons.Default.Nfc,
                 onClick = { openSection(Screen.NFC_TAGS) }
@@ -470,7 +470,7 @@ fun HomeScreen(
                                     letterSpacing = 1.sp
                                 )
                                 Text(
-                                    "NFC TO UNLOCK",
+                                    "BLOCKTAP TO UNLOCK",
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = GuardianTheme.OnLightSurfaceSecondaryText,
@@ -577,7 +577,7 @@ fun HomeScreen(
                         letterSpacing = 2.sp
                     )
                     Text(
-                        "Tap your NFC key to unlock.",
+                        "Tap your BlockTap to unlock.",
                         fontSize = 12.sp,
                         color = Color.Black.copy(alpha = 0.7f),
                         letterSpacing = 1.sp
@@ -613,7 +613,7 @@ fun HomeScreen(
 
     if (showEmergencyChallenge) {
         SafeRegimeChallengeDialog(
-            actionDescription = "Emergency reset will deactivate all modes and delete selected NFC tags. This could bypass the blocker.",
+            actionDescription = "Emergency reset will deactivate all modes and delete selected BlockTap tags. This could bypass the blocker.",
             totalDurationSeconds = challengeDuration,
             onComplete = {
                 showEmergencyChallenge = false
@@ -748,7 +748,7 @@ fun EmergencyWarningDialog(
                     modifier = Modifier.size(24.dp)
                 )
                 Text(
-                    "LOST NFC TAG?",
+                    "LOST BLOCKTAP?",
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp,
                     color = GuardianTheme.Error
@@ -772,7 +772,7 @@ fun EmergencyWarningDialog(
                         letterSpacing = 0.5.sp
                     )
                     Text(
-                        "--- Delete lost NFC tags",
+                        "--- Delete lost BlockTap tags",
                         fontSize = 13.sp,
                         color = GuardianTheme.OnLightSurfaceBorder,
                         letterSpacing = 0.5.sp
@@ -847,7 +847,7 @@ fun TagSelectionDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    "Select which NFC tags you lost:",
+                    "Select which BlockTap tags you lost:",
                     fontSize = 13.sp,
                     color = GuardianTheme.OnLightSurfaceBorder,
                     letterSpacing = 0.5.sp
@@ -860,7 +860,7 @@ fun TagSelectionDialog(
                         color = GuardianTheme.BackgroundSurface
                     ) {
                         Text(
-                            "No NFC tags registered",
+                            "No BlockTap registered",
                             fontSize = 12.sp,
                             color = GuardianTheme.TextSecondary,
                             letterSpacing = 0.5.sp,
@@ -1219,7 +1219,7 @@ fun SettingsDialog(
 
                 // ===== PROTECTION SECTION =====
                 Text(
-                    "NFC KEY PROTECTION",
+                    "BLOCKTAP PROTECTION",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
                     color = GuardianTheme.TextSecondary,
@@ -1241,7 +1241,7 @@ fun SettingsDialog(
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(
-                                "STRICT NFC MODE",
+                                "STRICT BLOCKTAP MODE",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = GuardianTheme.TextPrimary,
@@ -1249,7 +1249,7 @@ fun SettingsDialog(
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                "Only NFC key can change state",
+                                "Only BlockTap can change state",
                                 fontSize = 9.sp,
                                 color = GuardianTheme.TextTertiary,
                                 letterSpacing = 0.3.sp
@@ -1318,7 +1318,7 @@ fun SettingsDialog(
                         color = GuardianTheme.ErrorDark
                     ) {
                         Text(
-                            "Configuration locked. Tap your NFC key to modify.",
+                            "Configuration locked. Tap your BlockTap to modify.",
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
                             color = GuardianTheme.Error,
@@ -1803,7 +1803,7 @@ fun SettingsDialog(
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("${data.modes.size} modes", fontSize = 11.sp, color = GuardianTheme.TextPrimary, letterSpacing = 0.5.sp)
                             Text("${data.schedules.size} schedules", fontSize = 11.sp, color = GuardianTheme.TextPrimary, letterSpacing = 0.5.sp)
-                            Text("${data.nfcTags.size} NFC tags", fontSize = 11.sp, color = GuardianTheme.TextPrimary, letterSpacing = 0.5.sp)
+                            Text("${data.nfcTags.size} BlockTap tags", fontSize = 11.sp, color = GuardianTheme.TextPrimary, letterSpacing = 0.5.sp)
                         }
                     }
                     Surface(

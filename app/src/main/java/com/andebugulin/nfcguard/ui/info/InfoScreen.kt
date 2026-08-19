@@ -122,7 +122,7 @@ fun InfoScreen(
                                 letterSpacing = 2.sp
                             )
                             Text(
-                                "NFC-powered app blocker for digital wellbeing",
+                                "Physical app blocker for digital wellbeing",
                                 fontSize = 12.sp,
                                 color = GuardianTheme.TextSecondary,
                                 letterSpacing = 1.sp
@@ -379,7 +379,7 @@ fun InfoScreen(
                 item {
                     InfoSection(
                         title = "WHAT IS BLOCKTAP?",
-                        content = "BlockTap helps you maintain focus by blocking distracting apps. Use NFC tags as physical keys to unlock \u2014 making it harder to mindlessly open blocked apps."
+                        content = "BlockTap helps you maintain focus by blocking distracting apps. Use a BlockTap as a physical key to unlock \u2014 making it harder to mindlessly open blocked apps."
                     )
                 }
 
@@ -388,9 +388,9 @@ fun InfoScreen(
                         title = "HOW TO USE",
                         items = listOf(
                             "1. CREATE MODES \u2014 Select apps to block or allow",
-                            "2. LINK NFC TAGS (optional) \u2014 Register physical tags as unlock keys",
+                            "2. REGISTER BLOCKTAP (optional) \u2014 Register a physical tag as an unlock key",
                             "3. SET SCHEDULES \u2014 Auto-activate modes at specific times",
-                            "4. TAP TO UNLOCK \u2014 Use NFC tags to disable blocking"
+                            "4. TAP TO UNLOCK \u2014 Use BlockTap to disable blocking"
                         )
                     )
                 }
@@ -494,7 +494,7 @@ fun InfoScreen(
                                         )
                                     }
                                     Text(
-                                        "When you open a blocked app, a full-screen black overlay covers the screen with a message to tap NFC to unlock. This is the fallback method when the Accessibility Service is not enabled.",
+                                        "When you open a blocked app, a full-screen black overlay covers the screen with a message to tap your BlockTap to unlock. This is the fallback method when the Accessibility Service is not enabled.",
                                         fontSize = 11.sp,
                                         color = GuardianTheme.TextSecondary,
                                         letterSpacing = 0.3.sp,
@@ -554,7 +554,7 @@ fun InfoScreen(
                         items = listOf(
                             "\u2022 BLOCK MODE \u2014 Block selected apps",
                             "\u2022 ALLOW MODE \u2014 Block everything except selected apps",
-                            "\u2022 NFC LOCKS \u2014 Require specific tags to unlock modes",
+                            "\u2022 BLOCKTAP LOCKS \u2014 Require specific tags to unlock modes",
                             "\u2022 SCHEDULES \u2014 Auto-activate modes by day/time",
                             "\u2022 FORCE-CLOSE \u2014 Instantly kills blocked apps (with Accessibility)",
                             "\u2022 OVERLAY FALLBACK \u2014 Full-screen blocker when Accessibility is off",
@@ -568,7 +568,7 @@ fun InfoScreen(
                         title = "TIPS",
                         items = listOf(
                             "\u2022 Enable Accessibility Service for the most reliable blocking",
-                            "\u2022 Keep NFC tags in hard-to-reach places",
+                            "\u2022 Keep your BlockTap in a hard-to-reach place",
                             "\u2022 Use schedules for work/sleep hours",
                             "\u2022 Combine modes for maximum protection",
                             "\u2022 Check Settings to disable 'Pause app if unused'",

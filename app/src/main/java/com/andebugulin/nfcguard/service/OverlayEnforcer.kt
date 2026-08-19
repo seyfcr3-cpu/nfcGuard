@@ -276,7 +276,7 @@ class OverlayEnforcer(
                 addView(label("BLOCKTAP LOCKED", size = 42f, white = true, letterSpacing = 0.2f))
                 addView(arrow(32f, marginV = 16))
                 addView(label("This app can only be", size = 14f, white = false))
-                addView(label("unlocked with your NFC key.", size = 14f, white = false))
+                addView(label("unlocked with your BlockTap.", size = 14f, white = false))
                 addView(arrow(24f, marginV = 12))
                 addView(nfcKeyRow())
             }
@@ -330,7 +330,7 @@ class OverlayEnforcer(
         })
 
         addView(TextView(context).apply {
-            text = "  NFC KEY REQUIRED"
+            text = "  BLOCKTAP REQUIRED"
             textSize = 16f
             setTextColor(0xFFFFFFFF.toInt())
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)

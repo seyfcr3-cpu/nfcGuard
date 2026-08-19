@@ -339,14 +339,14 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
                 state.registeredNfcTagId.isNotEmpty() &&
                 tagId != state.registeredNfcTagId
             ) {
-                _protectionFeedback.value = "Wrong NFC key."
+                _protectionFeedback.value = "Wrong BlockTap."
                 AppLogger.log("NFC_KEY", "Wrong tag while LOCKED: $tagId")
                 return@launch
             }
 
             // If no registered key, treat as registration attempt
             if (state.registeredNfcTagId.isEmpty()) {
-                _protectionFeedback.value = "Scan detected. Register this tag as your NFC key."
+                _protectionFeedback.value = "Scan detected. Register this tag as your BlockTap."
                 return@launch
             }
 
@@ -530,7 +530,7 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
     fun registerNfcKey(tagId: String, name: String): Boolean {
         val state = repo.current
         if (state.protectionState == ProtectionState.LOCKED && !state.configEditable) {
-            _protectionFeedback.value = "Configuration locked. Tap your registered NFC key to modify protection settings."
+            _protectionFeedback.value = "Configuration locked. Tap your registered BlockTap to modify protection settings."
             return false
         }
         if (state.registeredNfcTagId.isNotEmpty() && state.registeredNfcTagId != tagId) {
@@ -559,12 +559,12 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
             val state = repo.current
 
             if (state.registeredNfcTagId.isEmpty()) {
-                _protectionFeedback.value = "No NFC key registered. Register a key first."
+                _protectionFeedback.value = "No BlockTap registered. Register one first."
                 return@launch
             }
 
             if (tagId != state.registeredNfcTagId) {
-                _protectionFeedback.value = "Wrong NFC key."
+                _protectionFeedback.value = "Wrong BlockTap."
                 AppLogger.log("NFC_KEY", "Wrong NFC key scanned: $tagId (expected: ${state.registeredNfcTagId})")
                 return@launch
             }
@@ -583,10 +583,10 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
                     }
                 }
                 is ProtectionLogic.ToggleProtectionResult.NoRegisteredTag -> {
-                    _protectionFeedback.value = "No NFC key registered."
+                    _protectionFeedback.value = "No BlockTap registered."
                 }
                 is ProtectionLogic.ToggleProtectionResult.WrongTag -> {
-                    _protectionFeedback.value = "Wrong NFC key."
+                    _protectionFeedback.value = "Wrong BlockTap."
                     AppLogger.log("NFC_KEY", "Wrong NFC key: $tagId")
                 }
             }
@@ -602,7 +602,7 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
             val state = repo.current
             if (state.protectionState != ProtectionState.LOCKED) return@launch
             if (tagId != state.registeredNfcTagId) {
-                _protectionFeedback.value = "Wrong NFC key."
+                _protectionFeedback.value = "Wrong BlockTap."
                 return@launch
             }
             mutate { it.copy(configEditable = true) }
