@@ -150,7 +150,7 @@ class MainActivity : ComponentActivity() {
     private fun handleNfcIntentSilent(intent: Intent?) {
         if (!isNfcIntent(intent)) return
         val tag: Tag? = intent?.getParcelableExtra(NfcAdapter.EXTRA_TAG) ?: return
-        val tagId = tag.id.joinToString("") { byte -> "%02x".format(byte) }
+        val tagId = tag?.id?.joinToString("") { byte -> "%02x".format(byte) } ?: return
         AppLogger.log("NFC", "Silent scan: $tagId")
 
         try {
