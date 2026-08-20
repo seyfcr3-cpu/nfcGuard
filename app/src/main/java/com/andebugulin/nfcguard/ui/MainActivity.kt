@@ -83,9 +83,20 @@ class MainActivity : ComponentActivity() {
     private var nfcFeedbackMessage = mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val isNfcLaunch = isNfcIntent(intent)
+        if (isNfcLaunch) {
+            setTheme(R.style.Theme_NFCGuard_Transparent)
+        }
+
         super.onCreate(savedInstanceState)
 
         AppLogger.init(this)
+
+        if (isNfcLaunch) {
+            handleNfcIntentSilent(intent)
+            finish()
+            return
+        }
 
         enableEdgeToEdge()
 
@@ -128,6 +139,75 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         nfcAdapter?.disableForegroundDispatch(this)
+    }
+
+    private fun isNfcIntent(intent: Intent?): Boolean {
+        return intent?.action == NfcAdapter.ACTION_TAG_DISCOVERED ||
+                intent?.action == NfcAdapter.ACTION_TECH_DISCOVERED ||
+                intent?.action == NfcAdapter.ACTION_NDEF_DISCOVERED
+    }
+
+    private fun handleNfcIntentSilent(intent: Intent?) {
+        if (!isNfcIntent(intent)) return
+        val tag: Tag? = intent?.getParcelableExtra(NfcAdapter.EXTRA_TAG) ?: return
+        val tagId = tag.id.joinToString("") { byte -> "%02x".format(byte) }
+        AppLogger.log("NFC", "Silent scan: $tagId")
+
+        try {
+            val appState = AppStateRepository.getInstance(this).current
+
+            val isRegistered = appState.registeredNfcTagId.isNotEmpty() && tagId == appState.registeredNfcTagId
+            val isLegacyValid = run {
+                val activeModes = appState.modes.filter { appState.activeModes.contains(it.id) }
+                val targetModes = if (activeModes.isNotEmpty()) activeModes else appState.modes
+                targetModes.any { it.nfcTagIds.contains(tagId) || it.nfcTagIds.isEmpty() || it.nfcTagIds.contains("ANY") }
+            }
+
+            if (!isRegistered && !isLegacyValid) {
+                android.widget.Toast.makeText(this, "WRONG BLOCKTAP", android.widget.Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val newState = when (appState.protectionState) {
+                ProtectionState.LOCKED -> {
+                    appState.copy(
+                        protectionState = ProtectionState.UNLOCKED,
+                        activeModes = emptySet(),
+                        manuallyActivatedModes = emptySet(),
+                        timedModeDeactivations = emptyMap(),
+                        timedModeReactivations = emptyMap(),
+                        pausedModeRemainingMs = emptyMap(),
+                        activeSchedules = emptySet(),
+                        configLocked = false,
+                        configEditable = true
+                    )
+                }
+                ProtectionState.UNLOCKED -> {
+                    val allModeIds = appState.modes.map { it.id }.toSet()
+                    appState.copy(
+                        protectionState = ProtectionState.LOCKED,
+                        activeModes = allModeIds,
+                        manuallyActivatedModes = appState.manuallyActivatedModes + allModeIds,
+                        configLocked = true,
+                        configEditable = false,
+                        timedModeDeactivations = emptyMap(),
+                        timedModeReactivations = emptyMap(),
+                        pausedModeRemainingMs = emptyMap()
+                    )
+                }
+                else -> return
+            }
+
+            kotlinx.coroutines.runBlocking {
+                AppStateRepository.getInstance(this@MainActivity).update { newState }
+            }
+
+            val msg = if (newState.protectionState == ProtectionState.LOCKED) "BLOCKTAP ON" else "BLOCKTAP OFF"
+            android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_SHORT).show()
+            AppLogger.log("NFC", "Silent toggle: $msg")
+        } catch (e: Exception) {
+            AppLogger.log("NFC", "Silent toggle error: ${e.message}")
+        }
     }
 
     private fun handleNfcIntent(intent: Intent?, fromCreate: Boolean) {
@@ -183,13 +263,40 @@ class MainActivity : ComponentActivity() {
 
                     if (canToggle) {
                         if (fromCreate) {
-                            val result = ProtectionLogic.toggleProtection(appState, tagId)
-                            if (result is ProtectionLogic.ToggleProtectionResult.Toggled) {
-                                val msg = if (result.nowLocked) "BLOCKTAP ON" else "BLOCKTAP OFF"
-                                nfcFeedbackMessage.value = msg
-                                lifecycleScope.launch {
-                                    AppStateRepository.getInstance(this@MainActivity).update { result.newState }
+                            val newState = when (appState.protectionState) {
+                                ProtectionState.LOCKED -> {
+                                    appState.copy(
+                                        protectionState = ProtectionState.UNLOCKED,
+                                        activeModes = emptySet(),
+                                        manuallyActivatedModes = emptySet(),
+                                        timedModeDeactivations = emptyMap(),
+                                        timedModeReactivations = emptyMap(),
+                                        pausedModeRemainingMs = emptyMap(),
+                                        activeSchedules = emptySet(),
+                                        configLocked = false,
+                                        configEditable = true
+                                    )
                                 }
+                                ProtectionState.UNLOCKED -> {
+                                    val allModeIds = appState.modes.map { it.id }.toSet()
+                                    appState.copy(
+                                        protectionState = ProtectionState.LOCKED,
+                                        activeModes = allModeIds,
+                                        manuallyActivatedModes = appState.manuallyActivatedModes + allModeIds,
+                                        configLocked = true,
+                                        configEditable = false,
+                                        timedModeDeactivations = emptyMap(),
+                                        timedModeReactivations = emptyMap(),
+                                        pausedModeRemainingMs = emptyMap()
+                                    )
+                                }
+                                else -> appState
+                            }
+                            val nowLocked = newState.protectionState == ProtectionState.LOCKED
+                            val msg = if (nowLocked) "BLOCKTAP ON" else "BLOCKTAP OFF"
+                            nfcFeedbackMessage.value = msg
+                            lifecycleScope.launch {
+                                AppStateRepository.getInstance(this@MainActivity).update { newState }
                             }
                         } else {
                             scannedNfcTagId.value = tagId
