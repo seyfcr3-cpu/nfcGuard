@@ -36,7 +36,7 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
 
     val appState: StateFlow<AppState> = repo.state
 
-    /** Safe Regime — stored separately from AppState to prevent bypass via config import */
+    /** Safe Regime â€” stored separately from AppState to prevent bypass via config import */
     private val _safeRegimeEnabled = MutableStateFlow(true)
     val safeRegimeEnabled: StateFlow<Boolean> = _safeRegimeEnabled
 
@@ -168,7 +168,7 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
                     pausedModeRemainingMs = state.pausedModeRemainingMs - id
                 )
             }
-            // Per-mode alarms are diffed from state by StateSyncer — no manual
+            // Per-mode alarms are diffed from state by StateSyncer â€” no manual
             // schedule/cancel calls needed.
         }
     }
@@ -179,7 +179,7 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
             is ModeActivationLogic.ActivateModeResult.ModeNotFound -> ActivationResult.MODE_NOT_FOUND
             is ModeActivationLogic.ActivateModeResult.Conflict -> {
                 val mode = repo.current.modes.find { it.id == modeId }
-                AppLogger.log("MODE", "CONFLICT: Cannot activate '${result.modeName}' (${mode?.blockMode}) — conflicts with active modes")
+                AppLogger.log("MODE", "CONFLICT: Cannot activate '${result.modeName}' (${mode?.blockMode}) â€” conflicts with active modes")
                 ActivationResult.BLOCK_MODE_CONFLICT
             }
             is ModeActivationLogic.ActivateModeResult.Activated -> {
@@ -404,7 +404,7 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    /** User dismissed the unlock dialog — do nothing, modes stay active */
+    /** User dismissed the unlock dialog â€” do nothing, modes stay active */
     fun dismissUnlock() {
         _pendingUnlock.value = null
     }
@@ -430,13 +430,13 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
 
             when (result) {
                 is NfcUnlockLogic.ReactivationResult.ModeNotFound -> {
-                    // Mode gone — just clear the orphan reactivation entry
+                    // Mode gone â€” just clear the orphan reactivation entry
                 }
                 is NfcUnlockLogic.ReactivationResult.AlreadyActive -> {
                     // Schedule (or other path) already re-activated it; just clean up
                 }
                 is NfcUnlockLogic.ReactivationResult.Conflict -> {
-                    AppLogger.log("TIMER", "Reactivation conflict for '${result.modeName}' — skipping, clearing timer")
+                    AppLogger.log("TIMER", "Reactivation conflict for '${result.modeName}' â€” skipping, clearing timer")
                 }
                 is NfcUnlockLogic.ReactivationResult.Reactivated -> {
                     val mode = repo.current.modes.find { it.id == modeId }
@@ -510,7 +510,7 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // ─── Brick-style NFC key protection ──────────────────────────────────
+    // â”€â”€â”€ Brick-style NFC key protection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /** Feedback message shown to user after NFC tag operations */
     private val _protectionFeedback = MutableStateFlow<String?>(null)
@@ -551,44 +551,72 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * Handle an NFC tag scan — either toggle protection or authenticate for config.
+     * Handle an NFC tag scan â€” either toggle protection or authenticate for config.
      * Called from MainActivity when a tag is scanned.
      */
     fun handleProtectionNfcTag(tagId: String) {
         viewModelScope.launch {
             val state = repo.current
 
-            if (state.registeredNfcTagId.isEmpty()) {
-                _protectionFeedback.value = "No BlockTap registered. Register one first."
-                return@launch
+            val isRegistered = state.registeredNfcTagId.isNotEmpty() && tagId == state.registeredNfcTagId
+
+            val isLegacyMatch = !isRegistered && run {
+                val targetModes = if (state.protectionState == ProtectionState.LOCKED) {
+                    state.modes
+                } else {
+                    state.modes.filter { state.activeModes.contains(it.id) }
+                }
+                targetModes.any { it.nfcTagIds.contains(tagId) || it.nfcTagIds.isEmpty() || it.nfcTagIds.contains("ANY") }
             }
 
-            if (tagId != state.registeredNfcTagId) {
-                _protectionFeedback.value = "Wrong BlockTap."
-                AppLogger.log("NFC_KEY", "Wrong NFC key scanned: $tagId (expected: ${state.registeredNfcTagId})")
-                return@launch
-            }
-
-            // Valid key — toggle protection
-            val result = ProtectionLogic.toggleProtection(state, tagId)
-            when (result) {
-                is ProtectionLogic.ToggleProtectionResult.Toggled -> {
-                    mutate { result.newState }
-                    _protectionFeedback.value = if (result.nowLocked) {
-                        AppLogger.log("NFC_KEY", "Protection LOCKED")
-                        "BlockTap locked."
-                    } else {
-                        AppLogger.log("NFC_KEY", "Protection UNLOCKED")
-                        "BlockTap unlocked."
-                    }
-                }
-                is ProtectionLogic.ToggleProtectionResult.NoRegisteredTag -> {
-                    _protectionFeedback.value = "No BlockTap registered."
-                }
-                is ProtectionLogic.ToggleProtectionResult.WrongTag -> {
+            if (!isRegistered && !isLegacyMatch) {
+                if (state.registeredNfcTagId.isNotEmpty()) {
                     _protectionFeedback.value = "Wrong BlockTap."
-                    AppLogger.log("NFC_KEY", "Wrong NFC key: $tagId")
+                    AppLogger.log("NFC_KEY", "Wrong tag: $tagId (expected: ${state.registeredNfcTagId})")
+                } else {
+                    _protectionFeedback.value = "No BlockTap registered. Register one first."
+                    AppLogger.log("NFC_KEY", "No registered key, tag: $tagId")
                 }
+                return@launch
+            }
+
+            val newState = when (state.protectionState) {
+                ProtectionState.LOCKED -> {
+                    state.copy(
+                        protectionState = ProtectionState.UNLOCKED,
+                        activeModes = emptySet(),
+                        manuallyActivatedModes = emptySet(),
+                        timedModeDeactivations = emptyMap(),
+                        timedModeReactivations = emptyMap(),
+                        pausedModeRemainingMs = emptyMap(),
+                        activeSchedules = emptySet(),
+                        configLocked = false,
+                        configEditable = true
+                    )
+                }
+                ProtectionState.UNLOCKED -> {
+                    val allModeIds = state.modes.map { it.id }.toSet()
+                    state.copy(
+                        protectionState = ProtectionState.LOCKED,
+                        activeModes = allModeIds,
+                        manuallyActivatedModes = state.manuallyActivatedModes + allModeIds,
+                        configLocked = true,
+                        configEditable = false,
+                        timedModeDeactivations = emptyMap(),
+                        timedModeReactivations = emptyMap(),
+                        pausedModeRemainingMs = emptyMap()
+                    )
+                }
+            }
+
+            mutate { newState }
+            val nowLocked = newState.protectionState == ProtectionState.LOCKED
+            _protectionFeedback.value = if (nowLocked) {
+                AppLogger.log("NFC_KEY", "Protection LOCKED (via ${if (isRegistered) "registered" else "legacy"} tag)")
+                "BlockTap locked."
+            } else {
+                AppLogger.log("NFC_KEY", "Protection UNLOCKED (via ${if (isRegistered) "registered" else "legacy"} tag)")
+                "BlockTap unlocked."
             }
         }
     }
@@ -652,7 +680,7 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * Emergency reset — requires cooldown check.
+     * Emergency reset â€” requires cooldown check.
      * Deactivates all modes and clears NFC key.
      */
     fun emergencyReset(): Boolean {
@@ -686,17 +714,17 @@ class GuardianViewModel(application: Application) : AndroidViewModel(application
         return true
     }
 
-    // Guard config mutations — returns error message if blocked, null if allowed
+    // Guard config mutations â€” returns error message if blocked, null if allowed
     fun checkConfigAccess(): String? {
         return ProtectionLogic.rejectConfigMutation(repo.current)
     }
 
-    // Guard mode deactivation — returns error message if blocked
+    // Guard mode deactivation â€” returns error message if blocked
     fun checkModeAccess(): String? {
         return ProtectionLogic.rejectModeDeactivation(repo.current)
     }
 
-    // Guard settings changes — returns error message if blocked
+    // Guard settings changes â€” returns error message if blocked
     fun checkSettingsAccess(): String? {
         return ProtectionLogic.rejectSettingsChange(repo.current)
     }
