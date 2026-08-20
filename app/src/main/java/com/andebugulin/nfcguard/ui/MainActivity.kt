@@ -322,7 +322,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MinimalistTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = darkColorScheme(
+        colorScheme = lightColorScheme(
             background = GuardianTheme.BackgroundPrimary,
             surface = GuardianTheme.BackgroundSurface,
             primary = GuardianTheme.ButtonPrimary,
@@ -353,13 +353,13 @@ fun MainNavigation(
     val appState by viewModel.appState.collectAsState()
     val pendingUnlock by viewModel.pendingUnlock.collectAsState()
 
-    // Handle NFC tag scans â€” registered tag always toggles protection
+    // Handle NFC tag scans — registered tag always toggles protection
     LaunchedEffect(scannedNfcTagId.value, appState.activeModes) {
         val tagId = scannedNfcTagId.value
         if (tagId != null && !nfcRegistrationMode.value) {
             val isRegistered = appState.registeredNfcTagId.isNotEmpty() && tagId == appState.registeredNfcTagId
             if (isRegistered || appState.protectionState == ProtectionState.LOCKED) {
-                // Registered tag or any tag while LOCKED â†’ toggle protection
+                // Registered tag or any tag while LOCKED → toggle protection
                 viewModel.handleProtectionNfcTag(tagId)
             } else if (appState.activeModes.isNotEmpty()) {
                 // Legacy: unregistered tag while UNLOCKED with active modes
@@ -494,15 +494,15 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             title = "MODES",
             subtitle = "FLEXIBLE CONTROL",
             description = "Create blocking modes for any situation:\n\n" +
-                    "â€¢  BLOCK â€” block the specific apps that distract you\n" +
-                    "â€¢  ALLOW ONLY â€” block everything except the apps you choose",
+                    "•  BLOCK — block the specific apps that distract you\n" +
+                    "•  ALLOW ONLY — block everything except the apps you choose",
             icon = "modes"
         ),
         OnboardingPage(
             title = "BLOCKTAP LOCKS",
             subtitle = "PHYSICAL FRICTION",
             description =                     "Add a BlockTap as a physical key to unlock your modes.\n\n" +
-                    "Keep a tag somewhere inconvenient â€” a drawer, the kitchen, another room â€” so opening a blocked app takes real, deliberate effort.\n\n" +
+                    "Keep a tag somewhere inconvenient — a drawer, the kitchen, another room — so opening a blocked app takes real, deliberate effort.\n\n" +
                     "This is an optional extra layer; modes work fine without it.",
             icon = "nfc"
         ),
@@ -510,21 +510,21 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             title = "SCHEDULES",
             subtitle = "AUTOMATION",
             description = "Let modes turn on by themselves, on the days and times you set:\n\n" +
-                    "â€¢  Work hours on weekdays\n" +
-                    "â€¢  Sleep schedule overnight\n" +
-                    "â€¢  Deep-work blocks on weekends",
+                    "•  Work hours on weekdays\n" +
+                    "•  Sleep schedule overnight\n" +
+                    "•  Deep-work blocks on weekends",
             icon = "schedule"
         ),
         OnboardingPage(
             title = "READY",
             subtitle = "LET'S GET STARTED",
             description = "BlockTap needs a few permissions to do its job. We'll walk through each one and explain why:\n\n" +
-                    "â€¢  Notifications (optional) â€” show which modes are active\n" +
-                    "â€¢  Usage access â€” see which app is open\n" +
-                    "â€¢  Display over apps â€” show the block screen\n" +
-                    "â€¢  Battery optimization â€” keep running reliably\n" +
-                    "â€¢  Pause app activity â€” must be turned off for BlockTap\n" +
-                    "â€¢  Accessibility â€” more reliable, instant blocking\n\n" +
+                    "•  Notifications (optional) — show which modes are active\n" +
+                    "•  Usage access — see which app is open\n" +
+                    "•  Display over apps — show the block screen\n" +
+                    "•  Battery optimization — keep running reliably\n" +
+                    "•  Pause app activity — must be turned off for BlockTap\n" +
+                    "•  Accessibility — more reliable, instant blocking\n\n" +
                     "Let's set them up.",
             icon = "ready"
         )
@@ -707,7 +707,7 @@ fun OnboardingPageContent(page: OnboardingPage) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Description â€” left-aligned so multi-line bullet lists line up
+        // Description — left-aligned so multi-line bullet lists line up
         // cleanly instead of rendering ragged under centered alignment.
         Text(
             page.description,
