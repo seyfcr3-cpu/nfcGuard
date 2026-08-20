@@ -30,7 +30,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import com.andebugulin.nfcguard.service.ForegroundDetectorService
 import com.andebugulin.nfcguard.ui.GuardianTheme
 import kotlinx.coroutines.delay
 
@@ -202,34 +201,7 @@ private fun advancePermissionQueue(queue: List<PermissionRequest>, context: Cont
 private fun nextAfterPermissionsExhausted(@Suppress("UNUSED_PARAMETER") context: Context): OnboardingStep =
     OnboardingStep.PauseAppReminder
 
-private fun nextAfterPauseReminder(context: Context): OnboardingStep? {
-    val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-    if (prefs.getBoolean(KEY_ACCESSIBILITY_REC_SHOWN, false)) return null
-    if (ForegroundDetectorService.isEnabled(context)) return null
-
-    val manufacturer = Build.MANUFACTURER
-    val isRequired = manufacturer.equals("Google", ignoreCase = true) ||
-        manufacturer.equals("Samsung", ignoreCase = true)
-    val title = when {
-        manufacturer.equals("Google", ignoreCase = true) -> "PIXEL DEVICE DETECTED"
-        manufacturer.equals("Samsung", ignoreCase = true) -> "SAMSUNG DEVICE DETECTED"
-        else -> "IMPROVE RELIABILITY"
-    }
-    val message = if (isRequired) {
-        "Your device has a known issue where app detection can fail during certain transitions.\n\n" +
-            "To ensure BlockTap blocks apps reliably, please enable the Accessibility Service permission.\n\n" +
-            "BlockTap only reads which app is in the foreground — it does NOT read any screen content or personal data."
-    } else {
-        "Enabling the Accessibility Service makes app detection faster and more reliable.\n\n" +
-            "This is optional but recommended for the best experience.\n\n" +
-            "BlockTap only reads which app is in the foreground — it does NOT read any screen content or personal data."
-    }
-    return OnboardingStep.AccessibilityRec(
-        title = title,
-        message = message,
-        positiveLabel = if (isRequired) "OPEN SETTINGS" else "ENABLE"
-    )
-}
+private fun nextAfterPauseReminder(@Suppress("UNUSED_PARAMETER") context: Context): OnboardingStep? = null
 
 private fun markInitialPermissionsGranted(context: Context) {
     context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -306,8 +278,7 @@ private fun WelcomeDialog(
             "• Usage access — see which app is open\n" +
             "• Display over apps — show the block screen\n" +
             "• Battery optimization — keep running reliably\n" +
-            "• Pause app activity — must be turned off for BlockTap\n" +
-            "• Accessibility — more reliable, instant blocking\n\n" +
+            "• Pause app activity — must be turned off for BlockTap\n\n" +
             "Let's set these up now.",
         confirmLabel = "CONTINUE",
         onConfirm = onContinue,
