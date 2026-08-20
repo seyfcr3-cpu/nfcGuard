@@ -5,7 +5,6 @@ import com.andebugulin.nfcguard.ProtectionState
 import com.andebugulin.nfcguard.data.ConfigManager
 import com.andebugulin.nfcguard.NfcTag
 import com.andebugulin.nfcguard.Schedule
-import com.andebugulin.nfcguard.service.ForegroundDetectorService
 import com.andebugulin.nfcguard.ui.GuardianTheme
 import com.andebugulin.nfcguard.ui.GuardianViewModel
 import com.andebugulin.nfcguard.ui.safety.SafeRegimeChallengeDialog
@@ -23,6 +22,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.core.*
+import androidx.compose.animation.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -65,6 +66,9 @@ fun HomeScreen(
     val context = LocalContext.current
     val isLocked = appState.protectionState == ProtectionState.LOCKED
     val hasNfcKey = appState.registeredNfcTagId.isNotEmpty()
+
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible = true }
 
     var showEmergencyDialog by remember { mutableStateOf(false) }
     var showEmergencyChallenge by remember { mutableStateOf(false) }
@@ -134,12 +138,7 @@ fun HomeScreen(
             val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
             pm.isIgnoringBatteryOptimizations(context.packageName)
         } catch (_: Exception) { false }
-        val accessibilityRequired = Build.MANUFACTURER.equals("Google", ignoreCase = true) ||
-                Build.MANUFACTURER.equals("Samsung", ignoreCase = true)
-        val accessibilityOk = if (accessibilityRequired) {
-            ForegroundDetectorService.isEnabled(context)
-        } else true
-        usageStatsOk && overlayOk && batteryOk && accessibilityOk
+        usageStatsOk && overlayOk && batteryOk
     }
 
     Column(
@@ -157,11 +156,12 @@ fun HomeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
+                val headerAlpha by animateFloatAsState(targetValue = if (visible) 1f else 0f, animationSpec = tween(400), label = "ha")
                 Text(
                     "BLOCKTAP",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Black,
-                    color = GuardianTheme.TextPrimary,
+                    color = GuardianTheme.BrandOrange.copy(alpha = headerAlpha),
                     letterSpacing = 2.sp
                 )
 
@@ -169,12 +169,12 @@ fun HomeScreen(
                 Spacer(Modifier.height(4.dp))
                 if (isLocked) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Icon(Icons.Default.Lock, contentDescription = null, tint = GuardianTheme.Error, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Lock, contentDescription = null, tint = GuardianTheme.BrandOrange, modifier = Modifier.size(14.dp))
                         Text(
                             "PROTECTED",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = GuardianTheme.Error,
+                            color = GuardianTheme.BrandOrange,
                             letterSpacing = 1.sp
                         )
                     }
@@ -223,7 +223,7 @@ fun HomeScreen(
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "Settings & Permissions",
-                    tint = if (permissionsGranted) GuardianTheme.IconPrimary else GuardianTheme.Error,
+                    tint = if (permissionsGranted) GuardianTheme.IconPrimary else GuardianTheme.BrandOrange,
                     modifier = Modifier
                         .size(20.dp)
                         .clickable(
@@ -261,7 +261,7 @@ fun HomeScreen(
         // NFC Key Status
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(0.dp),
+            shape = RoundedCornerShape(12.dp),
             color = GuardianTheme.BackgroundSurface
         ) {
             Row(
@@ -272,7 +272,7 @@ fun HomeScreen(
                 Icon(
                     Icons.Default.Nfc,
                     contentDescription = null,
-                    tint = if (hasNfcKey) GuardianTheme.Success else GuardianTheme.Error,
+                    tint = if (hasNfcKey) GuardianTheme.BrandOrange else GuardianTheme.Error,
                     modifier = Modifier.size(24.dp)
                 )
                 Column(Modifier.weight(1f)) {
@@ -284,14 +284,15 @@ fun HomeScreen(
                         letterSpacing = 1.sp
                     )
                     Text(
-                        if (hasNfcKey) "Registered" else "Not registered",
+                        if (hasNfcKey) "REGISTERED" else "NOT REGISTERED",
                         fontSize = 10.sp,
-                        color = if (hasNfcKey) GuardianTheme.TextSecondary else GuardianTheme.Error,
+                        fontWeight = if (hasNfcKey) FontWeight.Bold else FontWeight.Medium,
+                        color = if (hasNfcKey) GuardianTheme.BrandOrange else GuardianTheme.Error,
                         letterSpacing = 0.5.sp
                     )
                 }
                 if (hasNfcKey) {
-                    Icon(Icons.Default.CheckCircle, null, tint = GuardianTheme.Success, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.CheckCircle, null, tint = GuardianTheme.BrandOrange, modifier = Modifier.size(16.dp))
                 }
             }
         }
@@ -301,15 +302,15 @@ fun HomeScreen(
             val totalApps = viewModel.totalBlockedApps()
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp),
-                color = GuardianTheme.ErrorDark
+                shape = RoundedCornerShape(12.dp),
+                color = GuardianTheme.BrandOrangeSurface
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(Icons.Default.Block, null, tint = GuardianTheme.Error, modifier = Modifier.size(24.dp))
+                    Icon(Icons.Default.Block, null, tint = GuardianTheme.BrandOrange, modifier = Modifier.size(24.dp))
                     Column(Modifier.weight(1f)) {
                         Text(
                             "BLOCKED APPS",
@@ -339,7 +340,7 @@ fun HomeScreen(
                         mode.blockedApps.take(5).forEach { pkgName ->
                             val label = pkgName.substringAfterLast('.').replaceFirstChar { it.uppercase() }
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Box(modifier = Modifier.size(4.dp).background(GuardianTheme.Error, RoundedCornerShape(2.dp)))
+                                Box(modifier = Modifier.size(4.dp).background(GuardianTheme.BrandOrange, RoundedCornerShape(2.dp)))
                                 Text(
                                     label,
                                     fontSize = 10.sp,
@@ -370,17 +371,17 @@ fun HomeScreen(
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Default.Shield, null, tint = GuardianTheme.Success, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Shield, null, tint = GuardianTheme.BrandOrange, modifier = Modifier.size(14.dp))
                         Text("Configuration locked", fontSize = 10.sp, color = GuardianTheme.TextSecondary, letterSpacing = 0.5.sp)
                         Spacer(Modifier.weight(1f))
-                        Icon(Icons.Default.CheckCircle, null, tint = GuardianTheme.Success, modifier = Modifier.size(12.dp))
+                        Icon(Icons.Default.CheckCircle, null, tint = GuardianTheme.BrandOrange, modifier = Modifier.size(12.dp))
                     }
                     if (appState.uninstallProtection) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Icon(Icons.Default.AppBlocking, null, tint = GuardianTheme.Success, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Default.AppBlocking, null, tint = GuardianTheme.BrandOrange, modifier = Modifier.size(14.dp))
                             Text("Uninstall protection", fontSize = 10.sp, color = GuardianTheme.TextSecondary, letterSpacing = 0.5.sp)
                             Spacer(Modifier.weight(1f))
-                            Icon(Icons.Default.CheckCircle, null, tint = GuardianTheme.Success, modifier = Modifier.size(12.dp))
+                            Icon(Icons.Default.CheckCircle, null, tint = GuardianTheme.BrandOrange, modifier = Modifier.size(12.dp))
                         }
                     }
                 }
@@ -417,14 +418,14 @@ fun HomeScreen(
         protectionFeedback?.let { feedback ->
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp),
-                color = GuardianTheme.ErrorDark
+                shape = RoundedCornerShape(12.dp),
+                color = GuardianTheme.BrandOrangeSurface
             ) {
                 Text(
                     feedback.uppercase(),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    color = GuardianTheme.Error,
+                    color = GuardianTheme.BrandOrange,
                     letterSpacing = 0.5.sp,
                     modifier = Modifier.padding(12.dp)
                 )
@@ -435,15 +436,15 @@ fun HomeScreen(
         if (appState.activeModes.isNotEmpty() && !isLocked) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp),
-                color = GuardianTheme.TextPrimary
+                shape = RoundedCornerShape(12.dp),
+                color = GuardianTheme.BrandOrange
             ) {
                 Column(Modifier.padding(20.dp)) {
                     Text(
                         "ACTIVE NOW",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = GuardianTheme.BackgroundSurface,
+                        color = Color.White,
                         letterSpacing = 1.sp
                     )
                     Spacer(Modifier.height(12.dp))
@@ -457,7 +458,7 @@ fun HomeScreen(
                             Icon(
                                 Icons.Default.CheckCircle,
                                 contentDescription = null,
-                                tint = Color.Black,
+                                tint = Color.White,
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(Modifier.width(8.dp))
@@ -466,17 +467,22 @@ fun HomeScreen(
                                     mode.name.uppercase(),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = GuardianTheme.BackgroundSurface,
+                                    color = Color.White,
                                     letterSpacing = 1.sp
                                 )
                                 Text(
                                     "BLOCKTAP TO UNLOCK",
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = GuardianTheme.OnLightSurfaceSecondaryText,
+                                    color = Color.White.copy(alpha = 0.7f),
                                     letterSpacing = 1.sp
                                 )
                             }
+                        }
+                    }
+                }
+            }
+        }
                         }
                     }
                 }
@@ -561,8 +567,8 @@ fun HomeScreen(
         if (isLocked) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp),
-                color = GuardianTheme.TextPrimary
+                shape = RoundedCornerShape(16.dp),
+                color = GuardianTheme.BrandOrange
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -573,20 +579,20 @@ fun HomeScreen(
                         "BLOCKTAP LOCKED",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Black,
-                        color = Color.Black,
+                        color = Color.White,
                         letterSpacing = 2.sp
                     )
                     Text(
                         "Tap your BlockTap to unlock.",
                         fontSize = 12.sp,
-                        color = Color.Black.copy(alpha = 0.7f),
+                        color = Color.White.copy(alpha = 0.8f),
                         letterSpacing = 1.sp
                     )
                     Spacer(Modifier.height(4.dp))
                     Icon(
                         Icons.Default.Nfc,
                         contentDescription = null,
-                        tint = Color.Black,
+                        tint = Color.White,
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -682,7 +688,7 @@ fun NavigationCard(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(0.dp),
+        shape = RoundedCornerShape(12.dp),
         color = GuardianTheme.BackgroundSurface,
         onClick = onClick
     ) {
@@ -693,7 +699,7 @@ fun NavigationCard(
             Icon(
                 icon,
                 contentDescription = null,
-                tint = GuardianTheme.IconPrimary,
+                tint = GuardianTheme.BrandOrange,
                 modifier = Modifier.size(32.dp)
             )
             Spacer(Modifier.width(16.dp))
@@ -715,7 +721,7 @@ fun NavigationCard(
             Icon(
                 Icons.Default.ArrowForward,
                 contentDescription = null,
-                tint = GuardianTheme.IconSecondary
+                tint = GuardianTheme.BrandOrange
             )
         }
     }
@@ -1159,25 +1165,6 @@ fun SettingsDialog(
                         }
                     )
                 }
-// Accessibility Service — required on Google/Samsung, recommended elsewhere
-                val accessibilityGranted = remember(permRefreshKey) {
-                    ForegroundDetectorService.isEnabled(context)
-                }
-                val accessibilityIsRequired = Build.MANUFACTURER.equals("Google", ignoreCase = true) ||
-                        Build.MANUFACTURER.equals("Samsung", ignoreCase = true)
-                PermissionRow(
-                    name = if (accessibilityIsRequired) "ACCESSIBILITY SERVICE"
-                    else "ACCESSIBILITY (RECOMMENDED)",
-                    granted = accessibilityGranted,
-                    optional = !accessibilityIsRequired,
-                    onClick = {
-                        try {
-                            context.startActivity(
-                                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                            )
-                        } catch (_: Exception) {}
-                    }
-                )
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(0.dp),
@@ -1261,8 +1248,7 @@ fun SettingsDialog(
                             onCheckedChange = { viewModel.setStrictNfcMode(it) },
                             enabled = !isProtectionLocked || appState.configEditable,
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.Black,
-                                checkedTrackColor = Color.White,
+                                checkedThumbColor = Color.White, checkedTrackColor = GuardianTheme.BrandOrange,
                                 uncheckedThumbColor = GuardianTheme.ButtonDisabledText,
                                 uncheckedTrackColor = GuardianTheme.ButtonDisabledContainer
                             )
@@ -1302,8 +1288,7 @@ fun SettingsDialog(
                             onCheckedChange = { viewModel.setUninstallProtection(it) },
                             enabled = !isProtectionLocked || appState.configEditable,
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.Black,
-                                checkedTrackColor = Color.White,
+                                checkedThumbColor = Color.White, checkedTrackColor = GuardianTheme.BrandOrange,
                                 uncheckedThumbColor = GuardianTheme.ButtonDisabledText,
                                 uncheckedTrackColor = GuardianTheme.ButtonDisabledContainer
                             )
@@ -1315,13 +1300,13 @@ fun SettingsDialog(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(0.dp),
-                        color = GuardianTheme.ErrorDark
+                        color = GuardianTheme.BrandOrangeSurface
                     ) {
                         Text(
                             "Configuration locked. Tap your BlockTap to modify.",
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
-                            color = GuardianTheme.Error,
+                            color = GuardianTheme.BrandOrange,
                             letterSpacing = 0.3.sp,
                             modifier = Modifier.padding(12.dp)
                         )
@@ -1385,8 +1370,7 @@ fun SettingsDialog(
                                 }
                             },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.Black,
-                                checkedTrackColor = Color.White,
+                                checkedThumbColor = Color.White, checkedTrackColor = GuardianTheme.BrandOrange,
                                 uncheckedThumbColor = GuardianTheme.ButtonDisabledText,
                                 uncheckedTrackColor = GuardianTheme.ButtonDisabledContainer
                             )
@@ -1488,79 +1472,6 @@ fun SettingsDialog(
                 }
 
                 Spacer(Modifier.height(12.dp))
-
-                // ===== BLOCKING METHOD SECTION =====
-                Text(
-                    "BLOCKING METHOD",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Black,
-                    color = GuardianTheme.TextSecondary,
-                    letterSpacing = 2.sp
-                )
-
-                val accessibilityOn = remember(permRefreshKey) {
-                    ForegroundDetectorService.isEnabled(context)
-                }
-
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(0.dp),
-                    color = GuardianTheme.BackgroundSurface
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                if (accessibilityOn) "FORCE-CLOSE MODE" else "OVERLAY MODE",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = GuardianTheme.TextPrimary,
-                                letterSpacing = 1.sp
-                            )
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                if (accessibilityOn) "Blocked apps are force-closed instantly"
-                                else "Blocked apps show a full-screen overlay",
-                                fontSize = 9.sp,
-                                color = GuardianTheme.TextTertiary,
-                                letterSpacing = 0.3.sp
-                            )
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            "AUTO",
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = GuardianTheme.TextSecondary,
-                            letterSpacing = 1.sp
-                        )
-                    }
-                }
-
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(0.dp),
-                    color = GuardianTheme.WarningBackground
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(Icons.Default.Info, null, tint = GuardianTheme.Warning, modifier = Modifier.size(14.dp))
-                        Text(
-                            if (accessibilityOn) "Accessibility ON — force-close avoids overlay conflicts on Samsung/Pixel"
-                            else "Accessibility OFF — overlay mode active. Enable accessibility for force-close",
-                            fontSize = 9.sp,
-                            color = GuardianTheme.WarningTextMuted,
-                            letterSpacing = 0.3.sp
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(8.dp))
 
                 // ===== DATA SECTION =====
                 Text(
