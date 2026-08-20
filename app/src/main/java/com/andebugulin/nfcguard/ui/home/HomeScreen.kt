@@ -483,11 +483,6 @@ fun HomeScreen(
                 }
             }
         }
-                        }
-                    }
-                }
-            }
-        }
 
         // Temporarily unlocked modes - yellow panel
         if (appState.timedModeReactivations.isNotEmpty() && !isLocked) {
